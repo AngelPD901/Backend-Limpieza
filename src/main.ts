@@ -7,7 +7,7 @@ async function bootstrap() {
   app.enableCors();
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe());
-  await app.listen(3000);
-  console.log(`app listen in PORT: 3000`);
+  await app.listen(+process.env.PORT);
+  console.log(`app listen in PORT: ${process.env.PORT}`);
 }
 bootstrap();

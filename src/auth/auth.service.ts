@@ -21,7 +21,7 @@ export class AuthService {
   ) {}
 
   async create(createAuthDto: CreateAuthDto) {
-    try {
+    
       const { password, ...userData } = createAuthDto;
 
       const user = await this.authRepository.findOneBy({
@@ -43,9 +43,9 @@ export class AuthService {
           username: userCreate.username,
         })
       };
-    } catch (error) {
+    /*} catch (error) {
       this.handlerBDError(error);
-    }
+    }*/
   }
 
   async login(loginAuthDto: LoginAuthDto) {
