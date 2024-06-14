@@ -11,43 +11,70 @@ import { User } from './entities/user.entity';
 import { LoginAuthDto, CreateAuthDto, UpdateAuthDto } from './dto';
 import { JwtPayload } from '../interfaces/jwtpayload';
 import * as bcrypt from 'bcrypt';
-import {JwtService} from '@nestjs/jwt'
+import { JwtService } from '@nestjs/jwt';
+import { Apartament } from 'src/apartament/entities/apartament.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User) private readonly authRepository: Repository<User>,
-    private readonly jwtService: JwtService
+    @InjectRepository(Apartament) private readonly apartamentRepository:Repository<Apartament>,
+    private readonly jwtService: JwtService,
   ) {}
 
   async create(createAuthDto: CreateAuthDto) {
-    
-      const { password, ...userData } = createAuthDto;
+    const { password,apartament, ...userData } = createAuthDto;
+    const apart = await this.apartamentRepository.findOneBy({name:apartament})
+    if(!apart) throw new ConflictException('This apartament not exist');
 
-      const user = await this.authRepository.findOneBy({
-        username: createAuthDto.username,
-      });
+    const user = await this.authRepository.findOneBy({
+      username: createAuthDto.username,
+    });
 
-      if (user) throw new ConflictException('This username is in use');
+    if (user) throw new ConflictException('This username is in use');
 
-      const passwordHash = bcrypt.hashSync(password, 10);
-      const userCreate = await this.authRepository.create({
-        ...userData,
-        password: passwordHash,
-      });
-      await this.authRepository.save(userCreate);
+    const passwordHash = bcrypt.hashSync(password, 10);
+    const userCreate = await this.authRepository.create({
+      ...userData,
+      password: passwordHash,
+      aparment:apart
+    });
+    await this.authRepository.save(userCreate);
 
       return {
         token: this.getJwt({
           id: userCreate.id,
           username: userCreate.username,
-        })
+        }),
       };
+      
+
+    
     /*} catch (error) {
       this.handlerBDError(error);
     }*/
   }
+  async createAux(createAuthDto: CreateAuthDto) {
+    const { password, ...userData } = createAuthDto;
 
+    const user = await this.authRepository.findOneBy({
+      username: createAuthDto.username,
+    });
+
+    if (user) throw new ConflictException('This username is in use');
+
+    const passwordHash = bcrypt.hashSync(password, 10);
+    const userCreate = await this.authRepository.create({
+      ...userData,
+      password: passwordHash,
+    });
+    await this.authRepository.save(userCreate);
+
+    return userCreate;
+    /*} catch (error) {
+      this.handlerBDError(error);
+    }*/
+  }
   async login(loginAuthDto: LoginAuthDto) {
     const { username, password } = loginAuthDto;
     const user = await this.authRepository.findOneBy({ username: username });
@@ -62,17 +89,17 @@ export class AuthService {
       token: this.getJwt({
         id: user.id,
         username: user.username,
-      })
+      }),
     };
   }
 
   async findAll() {
     const users = await this.authRepository.find();
-    return {userlist:users};
+    return { userlist: users };
   }
 
   findOne(id: string) {
-    return this.authRepository.findOneBy({id:id});
+    return this.authRepository.findOneBy({ id: id });
   }
 
   update(id: string, updateAuthDto: UpdateAuthDto) {

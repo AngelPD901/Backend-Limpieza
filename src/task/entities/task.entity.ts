@@ -1,20 +1,21 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { User } from 'src/auth/entities/user.entity';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 @Entity('tasks')
 export class Task {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column('text')
-  data: string;
+  name: string;
 
-  @Column('bool',{
-    default:false,
+  @Column('bool', {
+    default: false,
   })
-  state:boolean;
+  state: boolean;
 
-  @Column()
-  idApartment: string;
-  
-  @Column()
-  idUser: string;
+  @ManyToOne(
+    () => User, 
+    (users) => users.task
+  )
+  user: string;
 }
